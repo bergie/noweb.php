@@ -1,5 +1,11 @@
 #!/usr/bin/php
 <?php
+/**
+ * @package noweb.php
+ * @author Henri Bergius, http://bergie.iki.fi
+ * @copyright Henri Bergius, http://bergie.iki.fi
+ * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License
+ */
 class noweb
 {
     private $chunk_start_regexp = '/^<<([^>]+)>>=/';

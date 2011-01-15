@@ -324,6 +324,7 @@ Then you can generate `noweb.php` from `README.txt` as follows:
 <<noweb.php>>=
 #!/usr/bin/php
 <?php
+<<license information>>
 class noweb
 {
     <<chunk regular expressions>>
@@ -362,4 +363,17 @@ class noweb
 }
 <<getting the file>>
 <<running the command>>
+@
+
+## Appendix 3: License and contributing
+
+`noweb.php` is free software produced by [Henri Bergius](http://bergie.iki.fi). The project is [managed on GitHub](https://github.com/bergie/noweb.php) where you can send pull requests or file issues.
+
+<<license information>>=
+/**
+ * @package noweb.php
+ * @author Henri Bergius, http://bergie.iki.fi
+ * @copyright Henri Bergius, http://bergie.iki.fi
+ * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License
+ */
 @
