@@ -6,6 +6,7 @@ class noweb
     private $chunk_end_regexp = '/^@$/';
     private $chunk_include_regexp = '/(\s*)<<([^>]+)>>/';
     public $chunks = array();
+    public $markdown = '';
 
     public function read_chunks($filename)
     {
@@ -22,19 +23,23 @@ class noweb
                 {
                     $this->chunks[$chunk] = '';
                 }
+                $this->markdown .= "<pre id=\"{$chunk}\" title=\"{$chunk}\">\n";
                 continue;
             }
             if (is_null($chunk))
             {
+                $this->markdown .= $line;
                 continue;
             }
             if (preg_match($this->chunk_end_regexp, $line))
             {
                 // Exiting a chunk
                 $chunk = null;
+                $this->markdown .= "</pre>\n";
                 continue;
             }
             $this->chunks[$chunk] .= $line;
+            $this->markdown .= htmlentities($line);
         }
     }
 
@@ -84,7 +89,7 @@ class noweb
         }
     }
 
-    public function write_files($target_dir)
+    public function tangle_files($target_dir)
     {
         foreach ($this->chunks as $name => $chunk)
         {
@@ -111,6 +116,18 @@ class noweb
             }
         }
     }
+
+    public function weave($file)
+    {
+        $fileinfo = pathinfo($file);
+        $new_extension = 'markdown';
+        if ($fileinfo['extension'] == 'markdown')
+        {
+            $new_extension = 'markdown.generated';
+        }
+        $new_filename = dirname($file) . "/{$fileinfo['filename']}.{$new_extension}";
+        file_put_contents($new_filename, $this->markdown);
+    }
 }
 if (basename($_SERVER['argv'][0]) == 'php')
 {
@@ -131,11 +148,14 @@ $noweb = new noweb();
 $noweb->read_chunks($readfile);
 switch ($command)
 {
-    case 'tangle':
-        $noweb->write_files(dirname($readfile));
-        break;
     case 'list':
         $noweb->list_files();
+        break;
+    case 'tangle':
+        $noweb->tangle_files(dirname($readfile));
+        break;
+    case 'weave':
+        $noweb->weave($readfile);
         break;
     default:
         die("Unknown command {$command}. Try 'tangle'\n");
