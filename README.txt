@@ -317,7 +317,7 @@ To generate `noweb.php` from this document, you first need a tool to extract the
 
 Then you can generate `noweb.php` from `README.txt` as follows:
 
-    $ noweb.php README.txt
+    $ noweb.php tangle README.txt
 
 ## Appendix 2: Summary of the program
 
