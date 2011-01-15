@@ -62,14 +62,34 @@ class noweb
         return rtrim($indented, " \n");
     }
 
+    public function is_chunk_file($name)
+    {
+        if (   strpos($name, '.') !== false
+            || strpos($name, '/') !== false)
+        {
+            return true;
+        }
+        return false;
+    }
+
+    public function list_files()
+    {
+        foreach ($this->chunks as $name => $chunk)
+        {
+            if (!$this->is_chunk_file($name))
+            {
+                continue;
+            }
+            echo "{$name}\n";
+        }
+    }
+
     public function write_files($target_dir)
     {
         foreach ($this->chunks as $name => $chunk)
         {
-            if (   strpos($name, '.') === false
-                && strpos($name, '/') === false)
+            if (!$this->is_chunk_file($name))
             {
-                // This chunk doesn't look like a file, skip
                 continue;
             }
             if (substr($target_dir, -1) != '/')
@@ -92,15 +112,31 @@ class noweb
         }
     }
 }
-if (count($_SERVER['argv']) != 2)
+if (basename($_SERVER['argv'][0]) == 'php')
 {
-    die("Usage: noweb.php textfile\n");
+    // The script was run via $ php noweb.php, tune arguments
+    array_shift($_SERVER['argv']);
 }
-$readfile = $_SERVER['argv'][1];
+if (count($_SERVER['argv']) != 3)
+{
+    die("Usage: noweb.php tangle <textfile>\n");
+}
+$command = $_SERVER['argv'][1];
+$readfile = $_SERVER['argv'][2];
 if (!file_exists($readfile))
 {
     die("File {$readfile} not found\n");
 }
 $noweb = new noweb();
 $noweb->read_chunks($readfile);
-$noweb->write_files(dirname($readfile));
+switch ($command)
+{
+    case 'tangle':
+        $noweb->write_files(dirname($readfile));
+        break;
+    case 'list':
+        $noweb->list_files();
+        break;
+    default:
+        die("Unknown command {$command}. Try 'tangle'\n");
+}

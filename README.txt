@@ -21,37 +21,67 @@ If you're interested in doing literate programming with PHP, grab the software p
 
 `noweb.php` is a PHP tool that reads a text file with [noweb-style](http://en.wikipedia.org/wiki/Noweb#Noweb.27s_input) annotated software code macros in it, parses it and writes the files defined in the document into the file system.
 
-    $ noweb.php README.txt
+    $ noweb.php tangle README.txt
 
 The resulting code files will be written into the same directory where the document resides.
+
+If you just want to see what code files the document defines, you can also run:
+
+    $ noweb.php list README.txt
 
 ## Getting a file
 
 When `noweb.php` starts, we check for the command line arguments to get a file. If no argument is found, we abort and give users instructions:
 
 <<getting the file>>=
-if (count($_SERVER['argv']) != 2)
+if (basename($_SERVER['argv'][0]) == 'php')
 {
-    die("Usage: noweb.php textfile\n");
+    // The script was run via $ php noweb.php, tune arguments
+    array_shift($_SERVER['argv']);
 }
+if (count($_SERVER['argv']) != 3)
+{
+    die("Usage: noweb.php tangle <textfile>\n");
+}
+@
+
+We get the command and filename from the arguments:
+
+<<getting the file>>=
+$command = $_SERVER['argv'][1];
+$readfile = $_SERVER['argv'][2];
 @
 
 The we check that the given file actually exists:
 
 <<getting the file>>=
-$readfile = $_SERVER['argv'][1];
 if (!file_exists($readfile))
 {
     die("File {$readfile} not found\n");
 }
 @
 
-And then we parse the file for any literate programming code, extract the code, and write it to file system. The workings of this is explained in detail later.
+And then we parse the file for any literate programming code, and extract the code. The workings of this is explained in detail later.
 
 <<getting the file>>=
 $noweb = new noweb();
 $noweb->read_chunks($readfile);
-$noweb->write_files(dirname($readfile));
+@
+
+We check the command given by the user and perform it:
+
+<<getting the file>>=
+switch ($command)
+{
+    case 'tangle':
+        $noweb->write_files(dirname($readfile));
+        break;
+    case 'list':
+        $noweb->list_files();
+        break;
+    default:
+        die("Unknown command {$command}. Try 'tangle'\n");
+}
 @
 
 ## Reading the file
@@ -158,6 +188,34 @@ foreach (preg_split("/(\r?\n)/", $content) as $line)
 return rtrim($indented, " \n");
 @
 
+## Checking if a code chunk is a file
+
+We look at the names of code chunks to check if they should be written to a file. Code chunks with slashes (`/`) or dots (`.`) are treated as files.
+
+<<checking for files>>=
+if (   strpos($name, '.') !== false
+    || strpos($name, '/') !== false)
+{
+    return true;
+}
+return false;
+@
+
+## Listing code files
+
+If user is interested in what files have been defined in the document we can list them.
+
+<<listing code files>>=
+foreach ($this->chunks as $name => $chunk)
+{
+    if (!$this->is_chunk_file($name))
+    {
+        continue;
+    }
+    echo "{$name}\n";
+}
+@
+
 ## Writing the code files
 
 After we have found and expanded all chunks from the document we will look for chunks that have names mapping them to a file:
@@ -165,10 +223,8 @@ After we have found and expanded all chunks from the document we will look for c
 <<writing code files>>=
 foreach ($this->chunks as $name => $chunk)
 {
-    if (   strpos($name, '.') === false
-        && strpos($name, '/') === false)
+    if (!$this->is_chunk_file($name))
     {
-        // This chunk doesn't look like a file, skip
         continue;
     }
     <<writing code file from chunk>>
@@ -228,6 +284,16 @@ class noweb
     public function expand_chunk($name, $indent = '')
     {
         <<expanding chunk macros>>
+    }
+
+    public function is_chunk_file($name)
+    {
+        <<checking for files>>
+    }
+
+    public function list_files()
+    {
+        <<listing code files>>
     }
 
     public function write_files($target_dir)
