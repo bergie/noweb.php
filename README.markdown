@@ -372,6 +372,7 @@ class noweb
 <pre id="license information" title="license information">
 /**
  * @package noweb.php
+ * @link https://github.com/bergie/noweb.php
  * @author Henri Bergius, http://bergie.iki.fi
  * @copyright Henri Bergius, http://bergie.iki.fi
  * @license http://www.gnu.org/licenses/lgpl.html GNU Lesser General Public License
